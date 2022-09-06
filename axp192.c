@@ -90,47 +90,57 @@ static axp192_err_t axp192_read_adc(const axp192_t *axp, uint8_t reg, float *buf
     uint8_t tmp[4];
     float sensitivity = 1.0;
     float offset = 0.0;
+    uint8_t shift = 4;
     axp192_err_t status;
 
     switch (reg) {
     case AXP192_ACIN_VOLTAGE:
     case AXP192_VBUS_VOLTAGE:
         /* 1.7mV per LSB */
-        sensitivity = 1.7 / 1000;
+        sensitivity = 1.7 / 1000.0;
+        shift = 4;
         break;
     case AXP192_ACIN_CURRENT:
-        /* 0.375mA per LSB */
-        sensitivity = 0.625 / 1000;
+        /* 0.625mA per LSB */
+        sensitivity = 0.625 / 1000.0;
+        shift = 4;
         break;
     case AXP192_VBUS_CURRENT:
         /* 0.375mA per LSB */
-        sensitivity = 0.375 / 1000;
+        sensitivity = 0.375 / 1000.0;
+        shift = 4;
         break;
     case AXP192_TEMP:
         /* 0.1C per LSB, 0x00 = -144.7C */
         sensitivity = 0.1;
         offset = -144.7;
+        shift = 4;
         break;
     case AXP192_TS_INPUT:
         /* 0.8mV per LSB */
-        sensitivity = 0.8 / 1000;
+        sensitivity = 0.8 / 1000.0;
+        shift = 4;
         break;
     case AXP192_BATTERY_POWER:
         /* 1.1mV * 0.5mA per LSB */
+        shift = 8;
         return read_battery_power(axp, buffer);
         break;
     case AXP192_BATTERY_VOLTAGE:
         /* 1.1mV per LSB */
-        sensitivity = 1.1 / 1000;
+        sensitivity = 1.1 / 1000.0;
+        shift = 4;
         break;
     case AXP192_CHARGE_CURRENT:
     case AXP192_DISCHARGE_CURRENT:
         /* 0.5mV per LSB */
-        sensitivity = 0.5 / 1000;
+        sensitivity = 0.5 / 1000.0;
+        shift = 5;
         break;
     case AXP192_APS_VOLTAGE:
         /* 1.4mV per LSB */
-        sensitivity = 1.4 / 1000;
+        sensitivity = 1.4 / 1000.0;
+        shift = 4;
         break;
     case AXP192_COULOMB_COUNTER:
         /* This is currently untested. */
@@ -142,7 +152,7 @@ static axp192_err_t axp192_read_adc(const axp192_t *axp, uint8_t reg, float *buf
     if (AXP192_OK != status) {
         return status;
     }
-    *buffer = (((tmp[0] << 4) + tmp[1]) * sensitivity) + offset;
+    *buffer = (((tmp[0] << shift) + tmp[1]) * sensitivity) + offset;
 
     return AXP192_OK;
 }
